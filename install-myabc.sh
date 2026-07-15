@@ -26,7 +26,7 @@ add_to_path()
 
 install_program()
 {
-    local source=$1
+    local source="$1"
     local target=$2
 
     if [[ ! -f "$source" ]]; then
@@ -83,6 +83,13 @@ install_program \
 install_program \
     "$script_dir/simple/ulm" \
     "$install_dir/ulm_simple"
+
+for xtest_abc in $script_dir/xtest_abc_*; do
+    install_program \
+	${xtest_abc} \
+	"$install_dir/"
+done
+
 
 echo
 echo "Installation completed."
