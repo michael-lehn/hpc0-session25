@@ -84,6 +84,10 @@ install_program \
     "$script_dir/simple/ulm" \
     "$install_dir/ulm_simple"
 
+install_program \
+    "$script_dir/simple/udb-tui" \
+    "$install_dir/udb-tui_simple"
+
 for xtest_abc in $script_dir/xtest_abc_*; do
     install_program \
 	${xtest_abc} \
