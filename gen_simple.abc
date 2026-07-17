@@ -192,6 +192,14 @@ fn genInitCode()
     printf("\t.equ \tSP, \t1\n");
     printf("\t.equ \tFP, \t2\n");
     printf("\tload \t0, \t%%SP\n");
+
+    local heapIdent: ->UStr = UStrCreate("heap.");
+
+    assert(genAddGlobal(heapIdent) && "can not create globale var heap.");
+    local addr: GenReg = genLoadAddr(heapIdent);
+    genReleaseReg(addr);
+    genStore(3, addr);
+
     genCallBegin(UStrCreate("main"), 0);
     local reg: GenReg = genCallEnd();
     genHalt(reg);
@@ -208,6 +216,25 @@ fn genInitCode()
     printf("\tputc \t%%4\n");
     printf("\tstore \t%%4, \t16(%%SP, 3)\n");
     printf("\tret \t%%3\n\n");
+
+    printf("\t# free(ptr)\n");
+    printf("free:\n");
+    printf("\tret \t%%3\n\n");
+
+    genFuncDefParam(UStrCreate("size"));
+    genFuncDefBegin(UStrCreate("malloc"));
+    local heapAddr: GenReg = genLoadAddr(heapIdent);
+    local heapVal: GenReg = genFetch(heapAddr);
+    local sizeVal: GenReg = genLoadVar(UStrCreate("size"));
+    genReleaseReg(heapVal);
+    genReleaseReg(sizeVal);
+    heapVal = genInstr(GEN_ADD, heapVal, sizeVal);
+    printf("\tstore \t%%%d, \t16(%%SP, 3)\n", heapVal);
+    genStore(heapVal, heapAddr);
+    genReleaseReg(heapAddr);
+    genReleaseReg(heapVal);
+    genFuncDefEnd();
+    
 }
 
 global localVarOffset: int;
