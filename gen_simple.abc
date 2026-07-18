@@ -226,13 +226,13 @@ fn genInitCode()
     local heapAddr: GenReg = genLoadAddr(heapIdent);
     local heapVal: GenReg = genFetch(heapAddr);
     local sizeVal: GenReg = genLoadVar(UStrCreate("size"));
-    genReleaseReg(heapVal);
     genReleaseReg(sizeVal);
-    heapVal = genInstr(GEN_ADD, heapVal, sizeVal);
+    sizeVal = genInstr(GEN_ADD, heapVal, sizeVal);
     printf("\tstore \t%%%d, \t16(%%SP, 3)\n", heapVal);
-    genStore(heapVal, heapAddr);
-    genReleaseReg(heapAddr);
+    genStore(sizeVal, heapAddr);
+    genReleaseReg(sizeVal);
     genReleaseReg(heapVal);
+    genReleaseReg(heapAddr);
     genFuncDefEnd();
     
 }
