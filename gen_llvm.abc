@@ -124,8 +124,10 @@ fn genInstr(instr: GenInstr, left: GenReg, right: GenReg): GenReg
 
 fn genInitCode()
 {
-    printf("declare i64 @getchar()\n");
+    printf("declare i32 @getchar()\n");
     printf("declare void @putchar(i64)\n");
+    printf("declare i64 @malloc(i64)\n");
+    printf("declare void @free(i64)\n");
 }
 
 global localVarOffset: int;
@@ -266,7 +268,10 @@ fn genLoadAddr(ident: ->UStr): GenReg
 {
     local addr: GenReg = getReg();
     local info: SymtabInfo;
-    assert(symtabGetInfo(ident, &info));
+    if (!symtabGetInfo(ident, &info)) {
+	fprintf(stderr, "unknown identifier %s\n", ident);
+	assert(0 && "unknown identifier");
+    }
     if (info.isGlobal) {
 	printf("\t; load address of global variable %s into %%%d\n",
 	       ident, addr);
@@ -283,7 +288,10 @@ fn genLoadAddr(ident: ->UStr): GenReg
 fn genLoadVar(ident: ->UStr): GenReg
 {
     local info: SymtabInfo;
-    assert(symtabGetInfo(ident, &info));
+    if (!symtabGetInfo(ident, &info)) {
+	fprintf(stderr, "unknown identifier %s\n", ident);
+	assert(0 && "unknown identifier");
+    }
     local dest: GenReg = getReg();
     if (info.isGlobal) {
 	printf("\t; load value of global variable %s:\n", ident);
@@ -380,11 +388,25 @@ fn genCallAddArg(argReg: GenReg, argPos: unsigned)
     fnArgStack->argList = n;
 }
 
+fn i32ToI64(val: GenReg): GenReg
+{
+    local dest: GenReg = getReg(); 
+    printf("\t%%%d  = sext i32 %%%d to i64\n", dest, val);
+    return dest;
+}
+
+
 fn genCallEnd(): GenReg
 {
+    local extend: bool = false;
     assert(fnArgStack);
     local retVal: GenReg = getReg();
-    printf("\t%%%d = call i64 @%s(", retVal, fnArgStack->fnName);
+    if (fnArgStack->fnName == UStrCreate("getchar")) {
+	printf("\t%%%d = call i32 @%s(", retVal, fnArgStack->fnName);
+	extend = true;
+    } else {
+	printf("\t%%%d = call i64 @%s(", retVal, fnArgStack->fnName);
+    }
     for (local n: ->FnArgNode = fnArgStack->argList; n; ) {
 	printf("i64 %%%d", n->argReg);
 	if (n->next) {
@@ -398,6 +420,9 @@ fn genCallEnd(): GenReg
     local f: ->FnArgStack = fnArgStack;
     fnArgStack = fnArgStack->next;
     free(f);
+    if (extend) {
+	retVal = i32ToI64(retVal);
+    }
     return retVal;
 }
 

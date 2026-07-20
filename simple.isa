@@ -85,7 +85,7 @@ U16_R_R	    (OP u 8) (z u 4) (y u 4) (imm u 16)
 
 0x41 R_R_R
 :   getc    %x
-    ulm_setReg(ulm_readChar() & 0xFF, x);
+    ulm_setReg(ulm_readChar(), x);
 
 
 0x50 REL_JMP
