@@ -346,7 +346,10 @@ fn genLoadAddr(ident: ->UStr): GenReg
 {
     local dest: GenReg = getReg();
     local info: SymtabInfo;
-    assert(symtabGetInfo(ident, &info));
+    if (!symtabGetInfo(ident, &info)) {
+	fprintf(stderr, "unknown identifier: %s\n", ident);
+	assert(0 && "symtabGetInfo(ident, &info) failed");
+    }
     setSegment(TEXT);
     if (info.isGlobal) {
 	printf("\t// load address of global variable %s\n", ident);
@@ -365,7 +368,10 @@ fn genLoadAddr(ident: ->UStr): GenReg
 fn genLoadVar(ident: ->UStr): GenReg
 {
     local info: SymtabInfo;
-    assert(symtabGetInfo(ident, &info));
+    if (!symtabGetInfo(ident, &info)) {
+	fprintf(stderr, "Unknown identifier '%s'\n", ident);
+	assert(0 && "Unknown identifier");
+    }
     setSegment(TEXT);
     if (!info.isGlobal) {
 	printf("\t// load value of local variable %s in two steps:\n", ident);
